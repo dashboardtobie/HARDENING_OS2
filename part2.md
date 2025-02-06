@@ -756,6 +756,6 @@ sudo rpm -ivh sysdig-0.39.0-x86_64.rpm
 - `sysdig` permet d'enregistrer ce qu'il capture dans un fichier pour analyse ultérieure
 - l'extension c'est `.scap` par convention
 - **capturez les *syscalls*  effectués par un `curl example.org`**
-
+[curl.scap](curl.scap)
 
 
