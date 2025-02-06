@@ -345,8 +345,7 @@ write(1, "systemd-private-de678db24d5b435b"..., 227systemd-private-de678db24d5b4
 
 🌞 **Utiliser `strace` pour tracer l'exécution de la commande `cat`**
 
-- faites `cat` sur un fichier qui contient des trucs
-```
+- faites `cat` sur un fichier qui contient des trucs  
 ```
 [dash@localhost ~]$ strace cat fichier.txt
 execve("/usr/bin/cat", ["cat", "fichier.txt"], 0x7ffc1e7b66f8 /* 31 vars */) = 0
