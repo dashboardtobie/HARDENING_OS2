@@ -1,12 +1,5 @@
 # Part II : Observe
 
-Si on veut tracer un processus avec `strace`, c'est comme ça :
-
-```bash
-# pour tracer l'exécution d'un echo par exemple
-$ strace echo yo
-```
-
 🌞 **Utiliser `strace` pour tracer l'exécution de la commande `ls`**
 
 - faites `ls` sur un dossier qui contient des trucs
