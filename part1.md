@@ -2,25 +2,7 @@
 
 ## 1. Anatomy of a program
 
-**Un programme est un fichier *exécutable*. C'est à dire que :** 
-
-- c'est un simple fichier
-- il est composé de plusieurs sections
-  - la section `.text` contient les instructions du programme pour le CPU
-  - les autres sections contiennent essentiellement des metadonnées
-- il peut être compilé...
-  - statiquement : tout est dans le programme
-  - dynamiquement : le programme pourra faire appel à des librairies du système
-- il est marqué comme étant "exécutable"
-  - sur Linux, on donne la permission d'exécution avec `chmod`
-
-Dans cette partie, on va voir quelques outils très usuels pour obtenir des infos sur un programme.
-
 ### A. `file`
-
-`file` est une commande uqi permet de déterminer le type d'un fichier.
-
-Ceci ne repose pas du tout sur l'extension du fichier. `file` regarde directement les bits qui composent le fichier pour en déterminer le type. Il se concentre sur les premiers octets du fichiers qui contient généralement des métadonnées suffisantes pour déterminer le type.
 
 🌞 **Utiliser `file` pour déterminer le type de :**
 
@@ -43,14 +25,6 @@ dash@localhost ~]$ sudo file /root/DamsoBruxellesVie.mp3
 > Le format des exécutables sous les OS Linux est appelé ELF. ELF est le format qui définit l'ordre des octets dans un programme, le fait qu'il doit être composé de plusieurs sections, comment il doit indiquer les librairies externes dont il a besoin, etc.
 
 ### B. `readelf`
-
-`readelf` permet d'obtenir des informations sur un fichier ELF : un exécutable Linux.
-
-De la même façon qu'un fichier texte possède des numéros de ligne quand on l'affiche, si on affiche le contenu d'un programme, chaque ligne est numérotée.
-
-Chaque ligne du programme a donc une adresse, qui est notée en hexadécimal.
-
-`readelf` permet notamment de voir de quelle adresse à quelle adresse se trouve  tell ou telle section.
 
 🌞 **Utiliser `readelf` sur le programme `ls`**
 
@@ -164,8 +138,6 @@ Le code du programme commence à l'adresse `0000000000004d50`
 
 `ldd` est un outil qui permet de manipuler le *dynamic linker* de Linux. Le *dynamic linker* c'est un programme qui s'occupe de trouver les librairies nécessaires quand un autre programme se lance.
 
-**On peut utiliser `ldd` notamment pour visualiser de quelle librairie a besoin un programme donné.**
-
 🌞 **Utiliser `ldd` sur le programme `ls`**
 
 - afficher la liste des librairies que va utiliser `ls` pendant son fonctionnement
@@ -195,9 +167,6 @@ Nom:`read` ; Id:`0`
 Nom:`write` ; Id:`1`
 - lancer un nouveau processus
 Nom:`clone` ; Id:`56`
-
-> Pour la suite du TP, gardez-vous sous le coude les réponses apportées à cette question. Juste après vous allez regarder le langage machine contenu dans des exécutables à la recherche de l'appel à un *syscall*. Il faudra le repérer grâce à son identifiant !
-
 
 ### B. `objdump`
 
@@ -268,7 +237,6 @@ dash@localhost ~]$ objdump -d -j .text /usr/bin/ls | grep -i 'call' | head - 20
 
 🌞 **Utiliser `objdump`** sur la librairie Glibc
 
-- vous avez repéré son chemin exact au point d'avant avec `ldd`
 - mettez en évidence quelques lignes qui contiennent l'instruction `syscall`
 ```
 [dash@localhost ~]$ objdump -d /lib64/libc.so.6 | grep 'syscall' | head -20
