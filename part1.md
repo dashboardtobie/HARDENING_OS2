@@ -22,8 +22,6 @@ dash@localhost ~]$ sudo file /root/DamsoBruxellesVie.mp3
 /root/DamsoBruxellesVie.mp3: Audio file with ID3 version 2.4.0, contains:MPEG ADTS, layer III, v1, 320 kbps, 44.1 kHz, Stereo
 ```
 
-> Le format des exécutables sous les OS Linux est appelé ELF. ELF est le format qui définit l'ordre des octets dans un programme, le fait qu'il doit être composé de plusieurs sections, comment il doit indiquer les librairies externes dont il a besoin, etc.
-
 ### B. `readelf`
 
 🌞 **Utiliser `readelf` sur le programme `ls`**
