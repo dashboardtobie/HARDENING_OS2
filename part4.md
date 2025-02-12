@@ -18,9 +18,7 @@
 
 - lancez-la avec : `python3 /opt/calc.py`
 - ouvrez le bon port firewall
-- connectez-vous avec une commande `nc` (depuis votre PC)
-- essayez d'envoyer genre "3+3" une fois connecté
-- l'app doit vous répondre "6"
+
 ```
 [dash@localhost ~]$ sudo firewall-cmd --add-port=13337/tcp --permanent
 [sudo] password for dash: 
@@ -29,8 +27,11 @@ success
 success
 [dash@localhost ~]$ sudo python3 /opt/calc.py 
 
+```
+- connectez-vous avec une commande `nc` (depuis votre PC)
+- essayez d'envoyer genre "3+3" une fois connecté
+- l'app doit vous répondre "6"
 
-```  
 Sur le shell de ma machine
 ```
 ┌─[dashboard@parrot]─[~]
